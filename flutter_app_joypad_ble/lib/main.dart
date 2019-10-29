@@ -7,11 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
+import 'loader.dart';
+Color insightOrange = Color(0xffeb6011);
 bool scanFlag = false;
 
 Future<void> main() async {
-  await SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.landscapeRight, DeviceOrientation.landscapeLeft]);
 
   runApp(MainScreen());
 }
@@ -20,7 +20,7 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Joypad with BLE',
+      title: 'Insight BLE',
       debugShowCheckedModeBanner: false,
       home: StreamBuilder<BluetoothState>(
           stream: FlutterBlue.instance.state,
@@ -31,8 +31,8 @@ class MainScreen extends StatelessWidget {
               return JoyPad();
             }
             return BluetoothOffScreen(state: state);
+            
           }),
-      theme: ThemeData.dark(),
     );
   }
 }
@@ -45,7 +45,7 @@ class BluetoothOffScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.lightBlue,
+      backgroundColor: insightOrange,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -75,9 +75,17 @@ class JoyPad extends StatefulWidget {
 }
 
 class _JoyPadState extends State<JoyPad> {
-  //final String SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+
+@override
+void initState(){
+  super.initState();
+  SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+  ]);
+}
+
   final String SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-  //final String CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
   final String CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
   final String TARGET_DEVICE_NAME = "CIRCU";
 
@@ -89,34 +97,31 @@ class _JoyPadState extends State<JoyPad> {
 
   String connectionText = "";
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   startScan() {
     print("starting scan...");
     setState(() {
       connectionText = "Start Scanning";
     });
     if (!scanFlag) {
+      Loader();
       scanFlag = true;
       scanSubScription =
           flutterBlue.scan(timeout: Duration(seconds: 2)).listen((scanResult) {
         print("scanning");
-        connectionText = "Scanning...";
+        connectionText = "scanning";
         if (scanResult.device.name.contains(TARGET_DEVICE_NAME)) {
           print('DEVICE found');
           targetDevice = scanResult.device;
           connectToDevice();
           stopScan();
           setState(() {
-            connectionText = "Connecting...";
+            connectionText = "connecting";
           });
         }
-        //});
       }, onDone: () {
-        connectionText = "Try power cycling bluetooth";
+        setState(() {
+          connectionText = "No Device Found";
+        });
         print("stopping scan");
         stopScan();
         scanFlag = false;
@@ -133,13 +138,13 @@ class _JoyPadState extends State<JoyPad> {
     if (targetDevice == null) return;
 
     setState(() {
-      connectionText = "Device Connecting...";
+      connectionText = "connecting";
     });
 
     await targetDevice.connect();
     print('DEVICE CONNECTED');
     setState(() {
-      connectionText = "Servo Connected!";
+      connectionText = "connected";
     });
 
     discoverServices();
@@ -166,7 +171,7 @@ class _JoyPadState extends State<JoyPad> {
           if (characteristic.uuid.toString() == CHARACTERISTIC_UUID) {
             targetCharacteristic = characteristic;
             setState(() {
-              connectionText = "All Ready";
+              connectionText = "Ready";
             });
           }
         });
@@ -228,14 +233,18 @@ class _JoyPadState extends State<JoyPad> {
       print(data);
       writeData(data);
     }
-
+    if ((connectionText == "scanning") || (connectionText == "connecting") || (connectionText == "connected")){
+      return Loader();
+    } 
     return Scaffold(
       appBar: AppBar(
         title: Text(connectionText),
+        backgroundColor: insightOrange,
       ),
       body: Container(
         child: targetCharacteristic == null
             ? Center(
+              
                 child: RaisedButton(
                   onPressed: () {
                     startScan();
