@@ -57,14 +57,7 @@ class _LoaderState extends State<Loader> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: 
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          Container(
-            child: Image.asset('assets/images/white_logo.png'),
-            height: 40.0,
-            width: 105.0,
-          ),
-        ]),
+        title: Text("Connecting"),
         backgroundColor: Color(0xffeb6011),
       ),
       body: Center(
@@ -167,7 +160,7 @@ class Logo extends StatelessWidget {
     return Center(
       child: Container(
         child: Image(
-          image: AssetImage('assets/images/logo.png'),
+          image: AssetImage('images/logo.png'),
         ),
       ),
     );

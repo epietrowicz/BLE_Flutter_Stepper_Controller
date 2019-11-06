@@ -6,14 +6,13 @@ import 'package:control_pad/models/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'loader.dart';
-
 Color insightOrange = Color(0xffeb6011);
 bool scanFlag = false;
 
 Future<void> main() async {
+
   runApp(MainScreen());
 }
 
@@ -32,6 +31,7 @@ class MainScreen extends StatelessWidget {
               return JoyPad();
             }
             return BluetoothOffScreen(state: state);
+            
           }),
     );
   }
@@ -75,15 +75,15 @@ class JoyPad extends StatefulWidget {
 }
 
 class _JoyPadState extends State<JoyPad> {
-  @override
-  void initState() {
-    connectionText = "Start Scanning";
-    super.initState();
-    SystemChrome.setPreferredOrientations([
+
+@override
+void initState(){
+  super.initState();
+  SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
-    ]);
-  }
+  ]);
+}
 
   final String SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
   final String CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
@@ -99,6 +99,9 @@ class _JoyPadState extends State<JoyPad> {
 
   startScan() {
     print("starting scan...");
+    setState(() {
+      connectionText = "Start Scanning";
+    });
     if (!scanFlag) {
       Loader();
       scanFlag = true;
@@ -117,7 +120,7 @@ class _JoyPadState extends State<JoyPad> {
         }
       }, onDone: () {
         setState(() {
-          connectionText = "none found";
+          connectionText = "No Device Found";
         });
         print("stopping scan");
         stopScan();
@@ -139,15 +142,6 @@ class _JoyPadState extends State<JoyPad> {
     });
 
     await targetDevice.connect();
-/*
-        .connect(timeout: Duration(seconds: 1), autoConnect: true)
-        .catchError(() {
-          print("YO WE TIMED OUT DAWG FIX THIS!!!!!!!!!!!!!!!");
-          setState(() {
-            connectionText = "timedout";
-          });
-    });*/
-
     print('DEVICE CONNECTED');
     setState(() {
       connectionText = "connected";
@@ -193,6 +187,7 @@ class _JoyPadState extends State<JoyPad> {
 
   @override
   Widget build(BuildContext context) {
+
     JoystickDirectionCallback onDirectionChanged(
         double degrees, double distance) {
       String data = "";
@@ -238,49 +233,25 @@ class _JoyPadState extends State<JoyPad> {
       print(data);
       writeData(data);
     }
-
-    if ((connectionText == "scanning") ||
-        (connectionText == "connecting") ||
-        (connectionText == "connected")) {
+    if ((connectionText == "scanning") || (connectionText == "connecting") || (connectionText == "connected")){
       return Loader();
-    } else if (connectionText == "none found") {
-      Fluttertoast.showToast(
-          msg: "Try power cycling bluetooth",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIos: 1);
-    }
+    } 
     return Scaffold(
       appBar: AppBar(
+        title: Text(connectionText),
         backgroundColor: insightOrange,
-        title:
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          Container(
-            child: Image.asset('assets/images/white_logo.png'),
-            height: 40.0,
-            width: 105.0,
-          ),
-        ]),
       ),
       body: Container(
         child: targetCharacteristic == null
             ? Center(
-                child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Container(
-                    child: Image.asset('assets/images/illustration.png'),
-                    width: 120.0,
-                    height: 120.0,
-                  ),
-                  RaisedButton(
-                    onPressed: () {
-                      startScan();
-                    },
-                    child: Text("Start Scanning"),
-                  ),
-                ],
-              ))
+              
+                child: RaisedButton(
+                  onPressed: () {
+                    startScan();
+                  },
+                  child: Text("Start Scan"),
+                ),
+              )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
