@@ -12,3 +12,5 @@ powerSTEP01 Eval Board - > nrf52840 USB Dongle
 * 5V - > VBUS
 * GND - > GND
 
+Follow the tutorial published here:
+https://medium.com/@pietrowicz.eric/bluetooth-low-energy-development-with-flutter-and-circuitpython-c7a25eafd3cf
